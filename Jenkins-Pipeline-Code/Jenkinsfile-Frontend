@@ -5,6 +5,7 @@ pipeline {
         nodejs 'nodejs'
     }
     environment  {
+        SCANNER_HOME=tool 'sonar-scanner'
         AWS_ACCOUNT_ID = credentials('ACCOUNT_ID')
         AWS_ECR_REPO_NAME = credentials('ECR_REPO1')
         AWS_DEFAULT_REGION = 'ap-south-1'
@@ -19,6 +20,31 @@ pipeline {
         stage('Checkout from Git') {
             steps {
                 git branch: 'main', url: 'https://github.com/Rajkolupula/2nd10WeeksofCloudOps-main1.git'
+            }
+        }
+        stage('Sonarqube Analysis') {
+            steps {
+                dir('client') {
+                    withSonarQubeEnv('sonar-server') {
+                        sh ''' $SCANNER_HOME/bin/sonar-scanner \
+                        -Dsonar.projectName=three-tier-frontend \
+                        -Dsonar.projectKey=three-tier-frontend '''
+                    }
+                }
+            }
+        }
+        stage('Quality Check') {
+            steps {
+                script {
+                    waitForQualityGate abortPipeline: false, credentialsId: 'sonar-token' 
+                }
+            }
+        }
+        stage('Trivy File Scan') {
+            steps {
+                dir('client') {
+                    sh 'trivy fs . > trivyfs.txt'
+                }
             }
         }
         stage("Docker Image Build") {
@@ -41,6 +67,11 @@ pipeline {
                 }
             }
         }
+        stage("TRIVY Image Scan") {
+            steps {
+                sh 'trivy image ${REPOSITORY_URI}${AWS_ECR_REPO_NAME}:${BUILD_NUMBER} > trivyimage.txt' 
+            }
+        }
         stage('Checkout Code') {
             steps {
                 git branch: 'main', url: 'https://github.com/Rajkolupula/2nd10WeeksofCloudOps-main1.git'
@@ -53,7 +84,7 @@ pipeline {
             }
             steps {
                 dir('kubernetes-files') {
-                    withCredentials([string(credentialsId: 'mygit-pattoken', variable: 'git_token')]) {
+                    withCredentials([string(credentialsId: 'my-git-pattoken', variable: 'git_token')]) {
                         sh '''
                             git config user.email "rkolupula589@gmail.com"
                             git config user.name "Rajkolupula"
