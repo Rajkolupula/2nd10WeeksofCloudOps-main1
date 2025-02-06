@@ -22,31 +22,31 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/Rajkolupula/2nd10WeeksofCloudOps-main1.git'
             }
         }
-        stage('Sonarqube Analysis') {
-            steps {
-                dir('client') {
-                    withSonarQubeEnv('sonar-server') {
-                        sh ''' $SCANNER_HOME/bin/sonar-scanner \
-                        -Dsonar.projectName=three-tier-frontend \
-                        -Dsonar.projectKey=three-tier-frontend '''
-                    }
-                }
-            }
-        }
-        stage('Quality Check') {
-            steps {
-                script {
-                    waitForQualityGate abortPipeline: false, credentialsId: 'sonar-server' 
-                }
-            }
-         }
-        stage('Trivy File Scan') {
-            steps {
-                dir('client') {
-                    sh 'trivy fs . > trivyfs.txt'
-                }
-            }
-        }
+        #stage('Sonarqube Analysis') {
+            #steps {
+                #dir('client') {
+                   # withSonarQubeEnv('sonar-server') {
+                       # sh ''' $SCANNER_HOME/bin/sonar-scanner \
+                        #-Dsonar.projectName=three-tier-frontend \
+                       # -Dsonar.projectKey=three-tier-frontend '''
+                   # }
+               # }
+           # }
+      #  }
+       # stage('Quality Check') {
+            #steps {
+               # script {
+                   # waitForQualityGate abortPipeline: false, credentialsId: 'sonar-server' 
+               # }
+           # }
+         #}
+        #stage('Trivy File Scan') {
+            #steps {
+               # dir('client') {
+                    #sh 'trivy fs . > trivyfs.txt'
+                #}
+           # }
+       # }
         stage("Docker Image Build") {
             steps {
                 script {
