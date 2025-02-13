@@ -6,7 +6,7 @@ pipeline {
     stages {
         stage('Checkout from Git'){
             steps{
-                echo 'git checkout'
+                echo ''
             }
         }
         stage('Terraform version'){
