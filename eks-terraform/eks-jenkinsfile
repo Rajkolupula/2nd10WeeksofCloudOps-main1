@@ -6,7 +6,7 @@ pipeline {
     stages {
         stage('Checkout from Git'){
             steps{
-                echo 'git branch: 'main', url: 'https://github.com/Rajkolupula/2nd10WeeksofCloudOps-main1.git'
+                echo'https://github.com/Rajkolupula/2nd10WeeksofCloudOps-main1.git'
             }
         }
         stage('Terraform version'){
