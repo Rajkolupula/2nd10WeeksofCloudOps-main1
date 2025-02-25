@@ -5,6 +5,7 @@ pipeline {
         nodejs 'nodejs'
     }
     environment  {
+        SCANNER_HOME = tool 'sonar-scanner'
         AWS_ACCOUNT_ID = credentials('ACCOUNT_ID')
         AWS_ECR_REPO_NAME = credentials('ECR_REPO2')
         AWS_DEFAULT_REGION = 'ap-south-1'
@@ -19,6 +20,31 @@ pipeline {
         stage('Checkout from Git') {
             steps {
                 git branch: 'main', url: 'https://github.com/Rajkolupula/2nd10WeeksofCloudOps-main1.git'
+            }
+        }
+        stage('Sonarqube Analysis') {
+            steps {
+                dir('backend') {
+                    withSonarQubeEnv('sonar-server') {
+                        sh ''' $SCANNER_HOME/bin/sonar-scanner \
+                        -Dsonar.projectName=three-tier-backend \
+                        -Dsonar.projectKey=three-tier-backend '''
+                    }
+                }
+            }
+        }
+        stage('Quality Check') {
+            steps {
+                script {
+                    waitForQualityGate abortPipeline: false, credentialsId: 'sonar-token' 
+                }
+            }
+        }
+        stage('Trivy File Scan') {
+            steps {
+                dir('backend') {
+                    sh 'trivy fs . > trivyfs.txt'
+                }
             }
         }
         stage("Docker Image Build") {
